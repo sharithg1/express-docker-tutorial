@@ -56,31 +56,30 @@ npm run dev
 
 1. SSH into your EC2 instance:
 ```bash
-ssh -i your-key.pem ec2-user@your-ec2-ip
+ssh -i your-key.pem ubuntu@your-ec2-ip
 ```
 
 2. Install Docker and Git:
 ```bash
 # Update system
-sudo yum update -y
+sudo apt update && sudo apt upgrade -y
 
 # Install Docker
-sudo yum install docker -y
-sudo service docker start
-sudo usermod -a -G docker ec2-user
+curl -fsSL https://get.docker.com -o get-docker.sh
+sudo sh get-docker.sh
+sudo usermod -aG docker ubuntu
 
 # Install Docker Compose
-sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-sudo chmod +x /usr/local/bin/docker-compose
+sudo apt install docker-compose -y
 
 # Install Git
-sudo yum install git -y
+sudo apt install git -y
 ```
 
 3. Log out and log back in for docker group changes to take effect:
 ```bash
 exit
-ssh -i your-key.pem ec2-user@your-ec2-ip
+ssh -i your-key.pem ubuntu@your-ec2-ip
 ```
 
 ### First-Time Deployment
@@ -188,6 +187,137 @@ docker-compose up -d \
   -e NODE_ENV=production
 ```
 
+### Exposing to the Internet
+
+#### 1. EC2 Security Group Configuration
+
+1. Open your EC2 dashboard in AWS Console
+2. Select your instance's security group
+3. Add inbound rules:
+   ```
+   Type        Port    Source      Description
+   SSH         22      Your IP     SSH access (restrict to your IP)
+   Custom TCP  3001    0.0.0.0/0   Application access (open to internet)
+   ```
+
+#### 2. UFW Firewall Setup
+
+1. Install UFW (usually pre-installed on Ubuntu):
+```bash
+sudo apt install ufw
+```
+
+2. Configure UFW rules:
+```bash
+# Allow SSH (always do this first to avoid lockout)
+sudo ufw allow ssh
+
+# Allow application port
+sudo ufw allow 3001
+
+# Enable UFW
+sudo ufw enable
+
+# Check status
+sudo ufw status
+```
+
+#### 3. Accessing the Application
+
+1. Get your EC2 instance's public IP:
+   - Find it in the EC2 dashboard, or
+   - Run this command on your instance:
+   ```bash
+   curl -s http://169.254.169.254/latest/meta-data/public-ipv4
+   ```
+
+2. Access your application:
+   ```
+   http://YOUR_EC2_PUBLIC_IP:3001
+   ```
+
+#### 4. Production Security Checklist
+
+1. Configure CORS in Express (if needed):
+```typescript
+// Add to your Express app
+app.use(cors({
+  origin: '*',  // Be more restrictive in production
+  methods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+```
+
+2. Regular security maintenance:
+```bash
+# Update system packages
+sudo apt update && sudo apt upgrade -y
+
+# Update npm packages
+npm audit
+npm update
+
+# Monitor application logs
+docker-compose logs -f app
+
+# Monitor system logs
+sudo journalctl -f
+
+# Monitor specific application logs
+sudo journalctl -u docker.service -f
+```
+
+3. Monitor resource usage:
+```bash
+# Check container stats
+docker stats
+
+# Install monitoring tools
+sudo apt install htop iotop -y
+
+# Monitor system resources
+htop
+
+# Monitor disk I/O
+iotop
+```
+
+4. Basic Ubuntu security hardening:
+```bash
+# Update SSH configuration
+sudo nano /etc/ssh/sshd_config
+# Set these values:
+# PermitRootLogin no
+# PasswordAuthentication no
+# PubkeyAuthentication yes
+
+# Restart SSH service
+sudo systemctl restart sshd
+
+# Enable automatic security updates
+sudo apt install unattended-upgrades
+sudo dpkg-reconfigure -plow unattended-upgrades
+
+# Check failed login attempts
+sudo journalctl -u ssh.service | grep "Failed"
+```
+
+5. Set up fail2ban (optional but recommended):
+```bash
+# Install fail2ban
+sudo apt install fail2ban -y
+
+# Create local config
+sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
+
+# Start fail2ban
+sudo systemctl enable fail2ban
+sudo systemctl start fail2ban
+
+# Check status
+sudo fail2ban-client status
+```
+
 ### Troubleshooting
 
 1. Container won't start:
@@ -206,9 +336,27 @@ docker-compose ps db
 
 # Check database logs
 docker-compose logs db
+
+# Check PostgreSQL logs specifically
+docker-compose exec db tail -f /var/log/postgresql/postgresql-14-main.log
 ```
 
-3. Clean restart:
+3. System issues:
+```bash
+# Check system logs
+sudo journalctl -xe
+
+# Check Docker service status
+sudo systemctl status docker
+
+# Check available disk space
+df -h
+
+# Check memory usage
+free -h
+```
+
+4. Clean restart:
 ```bash
 # Remove containers and volumes
 docker-compose down -v
