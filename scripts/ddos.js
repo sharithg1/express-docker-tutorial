@@ -10,6 +10,6 @@ export const options = {
 };
 
 export default function () {
-  http.get("http://ec2-18-222-148-168.us-east-2.compute.amazonaws.com:3001/");
+  http.get("http://ec2-18-224-199-179.us-east-2.compute.amazonaws.com:3001");
   sleep(0.1); // small delay to simulate real usage
 }
