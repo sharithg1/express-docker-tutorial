@@ -200,29 +200,7 @@ docker-compose up -d \
    Custom TCP  3001    0.0.0.0/0   Application access (open to internet)
    ```
 
-#### 2. UFW Firewall Setup
-
-1. Install UFW (usually pre-installed on Ubuntu):
-```bash
-sudo apt install ufw
-```
-
-2. Configure UFW rules:
-```bash
-# Allow SSH (always do this first to avoid lockout)
-sudo ufw allow ssh
-
-# Allow application port
-sudo ufw allow 3001
-
-# Enable UFW
-sudo ufw enable
-
-# Check status
-sudo ufw status
-```
-
-#### 3. Accessing the Application
+#### 2. Accessing the Application
 
 1. Get your EC2 instance's public IP:
    - Find it in the EC2 dashboard, or
@@ -236,7 +214,7 @@ sudo ufw status
    http://YOUR_EC2_PUBLIC_IP:3001
    ```
 
-#### 4. Production Security Checklist
+#### 3. Production Security Checklist
 
 1. Configure CORS in Express (if needed):
 ```typescript
@@ -248,7 +226,7 @@ app.use(cors({
 }));
 ```
 
-2. Regular security maintenance:
+2. Regular maintenance:
 ```bash
 # Update system packages
 sudo apt update && sudo apt upgrade -y
@@ -280,42 +258,6 @@ htop
 
 # Monitor disk I/O
 iotop
-```
-
-4. Basic Ubuntu security hardening:
-```bash
-# Update SSH configuration
-sudo nano /etc/ssh/sshd_config
-# Set these values:
-# PermitRootLogin no
-# PasswordAuthentication no
-# PubkeyAuthentication yes
-
-# Restart SSH service
-sudo systemctl restart sshd
-
-# Enable automatic security updates
-sudo apt install unattended-upgrades
-sudo dpkg-reconfigure -plow unattended-upgrades
-
-# Check failed login attempts
-sudo journalctl -u ssh.service | grep "Failed"
-```
-
-5. Set up fail2ban (optional but recommended):
-```bash
-# Install fail2ban
-sudo apt install fail2ban -y
-
-# Create local config
-sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
-
-# Start fail2ban
-sudo systemctl enable fail2ban
-sudo systemctl start fail2ban
-
-# Check status
-sudo fail2ban-client status
 ```
 
 ### Troubleshooting
