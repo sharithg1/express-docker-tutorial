@@ -1,12 +1,11 @@
 import express from "express";
-import {
-  runMigrations,
-  getAllUsers,
-  getAllOrders,
-  testConnection,
-} from "./services/database";
+import { runMigrations, testConnection } from "./services/database";
 import dotenv from "dotenv";
-import { getAllOrdersController } from "./controller/orders";
+import {
+  getAllOrdersController,
+  createOrderController,
+  getAllOrdersControllerJson,
+} from "./controller/orders";
 import cors from "cors";
 
 // Load environment variables
@@ -33,7 +32,16 @@ async function startServer() {
     await runMigrations();
     console.log("Migrations completed successfully");
 
+    // Express will serve public/index.html for all routes rather than the HTML from server at that route
+    app.use(express.static("public"));
+
+    // Parses incoming JSON request bodies, createOrderController needs to read JSON data from form submissions
+    app.use(express.json());
+
+    // Routes
     app.get("/", getAllOrdersController);
+    app.get("/api/dashboard", getAllOrdersControllerJson);
+    app.post("/api/orders", createOrderController);
 
     app.listen(port, () => {
       console.log(`Server is running at http://localhost:${port}`);

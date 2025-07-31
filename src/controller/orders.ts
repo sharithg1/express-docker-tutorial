@@ -1,4 +1,4 @@
-import { getAllOrders, getAllUsers } from "../services/database";
+import { createOrder, getAllOrders, getAllUsers } from "../services/database";
 import { analyzeOrders } from "../services/analytics";
 import { Request, Response } from "express";
 
@@ -91,32 +91,51 @@ const generateHTML = (users: any[], orders: any[], analytics: any): string => `
       <div class="analytics-card">
         <h3>Order Status Distribution</h3>
         ${Object.entries(analytics.statusDistribution)
-          .map(([status, count]) => `
+          .map(
+            ([status, count]) => `
             <p>${status}: ${count} orders</p>
-          `).join('')}
+          `
+          )
+          .join("")}
       </div>
       <div class="analytics-card">
         <h3>Daily Revenue</h3>
-        ${analytics.dailyRevenue.map((day: any) => `
-          <p>${day.date}: $${day.revenue.toFixed(2)} (${day.orderCount} orders)</p>
-        `).join('')}
+        ${analytics.dailyRevenue
+          .map(
+            (day: any) => `
+          <p>${day.date}: $${day.revenue.toFixed(2)} (${
+              day.orderCount
+            } orders)</p>
+        `
+          )
+          .join("")}
       </div>
     </div>
 
     <h3>User Spending Patterns</h3>
-    ${analytics.userSpendingPatterns.map((user: any) => `
+    ${analytics.userSpendingPatterns
+      .map(
+        (user: any) => `
       <div class="analytics-card">
         <h4>${user.userName}</h4>
         <p>Total Spent: $${user.totalSpent.toFixed(2)}</p>
         <p>Order Count: ${user.orderCount}</p>
         <p>Average Order: $${user.averageOrderValue.toFixed(2)}</p>
         <div class="trend-chart">
-          ${user.spendingTrend.map((value: number) => `
-            <div class="trend-bar" style="height: ${(value / Math.max(...user.spendingTrend) * 100)}%"></div>
-          `).join('')}
+          ${user.spendingTrend
+            .map(
+              (value: number) => `
+            <div class="trend-bar" style="height: ${
+              (value / Math.max(...user.spendingTrend)) * 100
+            }%"></div>
+          `
+            )
+            .join("")}
         </div>
       </div>
-    `).join('')}
+    `
+      )
+      .join("")}
   </div>
   
   <h2>Users</h2>
@@ -181,7 +200,7 @@ const generateHTML = (users: any[], orders: any[], analytics: any): string => `
 export const getAllOrdersController = async (req: Request, res: Response) => {
   try {
     const [users, orders] = await Promise.all([getAllUsers(), getAllOrders()]);
-    
+
     // Perform CPU-intensive analytics
     const analytics = analyzeOrders(orders, users);
 
@@ -189,5 +208,34 @@ export const getAllOrdersController = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error fetching data:", error);
     res.status(500).send("Error fetching data");
+  }
+};
+
+export const getAllOrdersControllerJson = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const [users, orders] = await Promise.all([getAllUsers(), getAllOrders()]);
+
+    // Perform CPU-intensive analytics
+    const analytics = analyzeOrders(orders, users);
+
+    res.json({ users, orders, analytics });
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    res.status(500).json({ error: "Error fetching data" });
+  }
+};
+
+export const createOrderController = async (req: Request, res: Response) => {
+  try {
+    const { user_id, total_amount, status } = req.body;
+    console.log(req.body);
+    const order = await createOrder({ user_id, total_amount, status });
+    res.status(201).json(order);
+  } catch (error) {
+    console.error("Error creating order:", error);
+    res.status(500).send("Error creating order");
   }
 };

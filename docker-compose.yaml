@@ -1,8 +1,8 @@
-version: '3.8'
+version: "3.8"
 
 services:
   app:
-    build: .
+    build: . # build image from Dockerfile, need to rebuild image when app code changes
     ports:
       - "3001:3001"
     environment:
@@ -18,7 +18,7 @@ services:
     restart: unless-stopped
 
   db:
-    image: postgres:15-alpine
+    image: postgres:15-alpine # pull already built image from docker hub
     ports:
       - "5432:5432"
     environment:
@@ -30,4 +30,4 @@ services:
     restart: unless-stopped
 
 volumes:
-  postgres_data_express_tutorial: 
+  postgres_data_express_tutorial:

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Database Data</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <h1>Database Data</h1>
+
+    <!-- Create Order Form -->
+    <div class="create-order-form">
+      <h2>Create New Order</h2>
+      <form id="createOrderForm">
+        <div class="form-group">
+          <label for="user_id">User ID:</label>
+          <input type="number" id="user_id" name="user_id" required />
+        </div>
+        <div class="form-group">
+          <label for="total_amount">Total Amount:</label>
+          <input
+            type="number"
+            id="total_amount"
+            name="total_amount"
+            step="0.01"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label for="status">Status:</label>
+          <select id="status" name="status" required>
+            <option value="pending">Pending</option>
+            <option value="processing">Processing</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+        <button type="submit" class="btn">Create Order</button>
+      </form>
+    </div>
+
+    <!-- Analytics Section -->
+    <div id="analytics" class="analytics">
+      <div class="loading">Loading analytics...</div>
+    </div>
+
+    <!-- Users Section -->
+    <div id="users">
+      <h2>Users</h2>
+      <div class="loading">Loading users...</div>
+    </div>
+
+    <!-- Orders Section -->
+    <div id="orders">
+      <h2>Orders</h2>
+      <div class="loading">Loading orders...</div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
